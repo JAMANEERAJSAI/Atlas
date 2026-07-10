@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from atlas.config.settings import get_settings
-from .models import Base
+from atlas.storage.models import Base
 
 
 def get_engine() -> Engine:

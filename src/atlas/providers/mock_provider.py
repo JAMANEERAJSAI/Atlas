@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any
 
-from .base import MarketDataProvider
+from atlas.providers.base import Candle, HistoricalData, MarketDataProvider, Quote
 
 
 @dataclass
@@ -38,13 +37,13 @@ class MockMarketProvider(MarketDataProvider):
         movement = ((seed % 7) - 3) * self.drift
         return round(self.base_price + movement, 2)
 
-    def get_historical_data(self, symbol: str) -> list[dict[str, Any]]:
+    def get_historical_data(self, symbol: str) -> HistoricalData:
         """Return realistic-looking OHLC candles for the symbol."""
 
         if not self._connected:
             raise RuntimeError("Provider is not connected")
 
-        candles: list[dict[str, Any]] = []
+        candles: list[Candle] = []
         base = self.get_ltp(symbol)
         start_time = datetime.utcnow().replace(hour=9, minute=15, second=0, microsecond=0)
 
@@ -55,18 +54,18 @@ class MockMarketProvider(MarketDataProvider):
             high_price = round(max(open_price, close_price) + 0.2, 2)
             low_price = round(min(open_price, close_price) - 0.2, 2)
             candles.append(
-                {
-                    "symbol": symbol,
-                    "timestamp": candle_time.isoformat(),
-                    "open": open_price,
-                    "high": high_price,
-                    "low": low_price,
-                    "close": close_price,
-                    "volume": 1000 + index * 100,
-                }
+                Candle(
+                    symbol=symbol,
+                    timestamp=candle_time,
+                    open=open_price,
+                    high=high_price,
+                    low=low_price,
+                    close=close_price,
+                    volume=1000 + index * 100,
+                )
             )
 
-        return candles
+        return HistoricalData(symbol=symbol, candles=candles)
 
     def subscribe(self, symbols: list[str]) -> None:
         """Subscribe to a list of symbols."""
